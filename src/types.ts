@@ -70,11 +70,13 @@ export interface DiffFile extends DiffFileName {
   mode?: string;
 }
 
-export type OutputFormatType = 'line-by-line' | 'side-by-side';
+export type OutputFormatType = 'line-by-line' | 'side-by-side' | 'line-by-line-lit' | 'side-by-side-lit';
 
 export const OutputFormatType: { [_: string]: OutputFormatType } = {
   LINE_BY_LINE: 'line-by-line',
   SIDE_BY_SIDE: 'side-by-side',
+  LINE_BY_LINE_LIT: 'line-by-line-lit',
+  SIDE_BY_SIDE_LIT: 'side-by-side-lit',
 };
 
 export type LineMatchingType = 'lines' | 'words' | 'none';

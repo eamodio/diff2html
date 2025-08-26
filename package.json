@@ -82,7 +82,9 @@
   },
   "dependencies": {
     "diff": "^7.0.0",
-    "hogan.js": "3.0.2"
+    "hogan.js": "3.0.2",
+    "lit": "^3.1.0",
+    "@lit-labs/virtualizer": "^2.1.1"
   },
   "optionalDependencies": {
     "highlight.js": "11.9.0"
