@@ -5,6 +5,7 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { virtualize } from '@lit-labs/virtualizer/virtualize.js';
 import * as renderUtils from '../render-utils';
 import { DiffFile, DiffLine, LineType } from '../types';
+import type { DiffFile as DiffFileType } from '../types';
 import './diff-line-component';
 
 // Create a type for header lines that extends DiffLine
@@ -139,7 +140,7 @@ export class DiffFileComponent extends LitElement {
     }
   `;
 
-  @property({ type: Object }) file!: DiffFile;
+  @property({ type: Object }) file!: DiffFileType;
   @property({ type: String }) filePath = '';
   @property({ type: Boolean }) enableVirtualization = true;
   @property({ type: Number }) virtualizationThreshold = 100; // Lines threshold for enabling virtualization
@@ -203,9 +204,9 @@ export class DiffFileComponent extends LitElement {
           ? unsafeHTML(this.filePath)
           : html`
               <span class="d2h-file-name-wrapper">
-                ${unsafeHTML(getFileIconSvg(this.file))}
-                <span class="d2h-file-name">${renderUtils.filenameDiff(this.file)}</span>
-                ${unsafeHTML(getFileStatusTag(this.file))}
+                ${unsafeHTML(getFileIconSvg(this.file as DiffFile))}
+                <span class="d2h-file-name">${renderUtils.filenameDiff(this.file as DiffFile)}</span>
+                ${unsafeHTML(getFileStatusTag(this.file as DiffFile))}
               </span>
               <label class="d2h-file-collapse">
                 <input class="d2h-file-collapse-input" type="checkbox" name="viewed" value="viewed" />
@@ -232,7 +233,11 @@ export class DiffFileComponent extends LitElement {
 
     if (lines.length === 0) {
       return html`
-        <div id="${renderUtils.getHtmlId(this.file)}" class="d2h-file-wrapper" data-lang="${this.file.language}">
+        <div
+          id="${renderUtils.getHtmlId(this.file as DiffFile)}"
+          class="d2h-file-wrapper"
+          data-lang="${this.file.language}"
+        >
           ${this.renderFileHeader()}
           <div class="d2h-file-diff">
             <div class="d2h-code-wrapper">
@@ -249,7 +254,7 @@ export class DiffFileComponent extends LitElement {
 
     return html`
       <div
-        id="${renderUtils.getHtmlId(this.file)}"
+        id="${renderUtils.getHtmlId(this.file as DiffFile)}"
         class="d2h-file-wrapper ${classMap({
           'small-file': !useVirtualization,
           'large-file': useVirtualization,

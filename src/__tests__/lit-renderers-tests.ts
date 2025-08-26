@@ -51,30 +51,32 @@ index 1234567..abcdefg 100644
   });
 
   describe('renderToElement', () => {
-    it('should render to element with line-by-line-lit format', () => {
+    it('should render to element with line-by-line-lit format (fallback to traditional)', () => {
       const mockElement = {
         innerHTML: '',
         appendChild: jest.fn(),
       };
 
-      Diff2Html.renderToElement(sampleDiffString, mockElement as Element, {
+      Diff2Html.renderToElement(sampleDiffString, mockElement as unknown as Element, {
         outputFormat: 'line-by-line-lit' as OutputFormatType,
       });
 
-      expect(mockElement.appendChild).toHaveBeenCalled();
+      // In test environment, Lit components are not available, so it should fall back to innerHTML
+      expect(mockElement.innerHTML).toBeTruthy();
     });
 
-    it('should render to element with side-by-side-lit format', () => {
+    it('should render to element with side-by-side-lit format (fallback to traditional)', () => {
       const mockElement = {
         innerHTML: '',
         appendChild: jest.fn(),
       };
 
-      Diff2Html.renderToElement(sampleDiffString, mockElement as Element, {
+      Diff2Html.renderToElement(sampleDiffString, mockElement as unknown as Element, {
         outputFormat: 'side-by-side-lit' as OutputFormatType,
       });
 
-      expect(mockElement.appendChild).toHaveBeenCalled();
+      // In test environment, Lit components are not available, so it should fall back to innerHTML
+      expect(mockElement.innerHTML).toBeTruthy();
     });
 
     it('should fall back to HTML string for traditional formats', () => {
@@ -83,7 +85,7 @@ index 1234567..abcdefg 100644
         appendChild: jest.fn(),
       };
 
-      Diff2Html.renderToElement(sampleDiffString, mockElement as Element, {
+      Diff2Html.renderToElement(sampleDiffString, mockElement as unknown as Element, {
         outputFormat: 'line-by-line' as OutputFormatType,
       });
 

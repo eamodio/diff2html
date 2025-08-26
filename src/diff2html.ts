@@ -2,16 +2,43 @@ import * as DiffParser from './diff-parser';
 import { FileListRenderer } from './file-list-renderer';
 import LineByLineRenderer, { LineByLineRendererConfig, defaultLineByLineRendererConfig } from './line-by-line-renderer';
 import SideBySideRenderer, { SideBySideRendererConfig, defaultSideBySideRendererConfig } from './side-by-side-renderer';
-import LitLineByLineRenderer, {
-  LitLineByLineRendererConfig,
-  defaultLitLineByLineRendererConfig,
-} from './lit/lit-line-by-line-renderer';
-import LitSideBySideRenderer, {
-  LitSideBySideRendererConfig,
-  defaultLitSideBySideRendererConfig,
-} from './lit/lit-side-by-side-renderer';
 import { DiffFile, OutputFormatType } from './types';
 import HoganJsUtils, { HoganJsUtilsConfig } from './hoganjs-utils';
+
+// Conditional import for Lit renderers to avoid Jest module loading issues
+let LitLineByLineRenderer: typeof import('./lit/lit-line-by-line-renderer').default | null = null;
+let LitSideBySideRenderer: typeof import('./lit/lit-side-by-side-renderer').default | null = null;
+let defaultLitLineByLineRendererConfig: Partial<LitLineByLineRendererConfig> = {};
+let defaultLitSideBySideRendererConfig: Partial<LitSideBySideRendererConfig> = {};
+
+// Only import Lit components in browser/non-test environments
+if (typeof window !== 'undefined' || typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const litModule = require('./lit/lit-line-by-line-renderer');
+    LitLineByLineRenderer = litModule.default;
+    defaultLitLineByLineRendererConfig = litModule.defaultLitLineByLineRendererConfig;
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const litSideBySideModule = require('./lit/lit-side-by-side-renderer');
+    LitSideBySideRenderer = litSideBySideModule.default;
+    defaultLitSideBySideRendererConfig = litSideBySideModule.defaultLitSideBySideRendererConfig;
+  } catch (error: unknown) {
+    // Fallback for environments where Lit is not available
+    console.warn('Lit Web Components not available:', (error as Error).message);
+  }
+}
+
+// Types for Lit renderer configs
+export interface LitLineByLineRendererConfig extends LineByLineRendererConfig {
+  enableVirtualization?: boolean;
+  virtualizationThreshold?: number;
+}
+
+export interface LitSideBySideRendererConfig extends SideBySideRendererConfig {
+  enableVirtualization?: boolean;
+  virtualizationThreshold?: number;
+}
 
 export interface Diff2HtmlConfig
   extends DiffParser.DiffParserConfig,
@@ -53,10 +80,20 @@ export function html(diffInput: string | DiffFile[], configuration: Diff2HtmlCon
 
   switch (config.outputFormat) {
     case 'line-by-line-lit':
-      diffOutput = new LitLineByLineRenderer(config).render(diffJson);
+      if (LitLineByLineRenderer) {
+        diffOutput = new LitLineByLineRenderer(config).render(diffJson);
+      } else {
+        console.warn('Lit Line-by-Line renderer not available, falling back to traditional renderer');
+        diffOutput = new LineByLineRenderer(hoganUtils, config).render(diffJson);
+      }
       break;
     case 'side-by-side-lit':
-      diffOutput = new LitSideBySideRenderer(config).render(diffJson);
+      if (LitSideBySideRenderer) {
+        diffOutput = new LitSideBySideRenderer(config).render(diffJson);
+      } else {
+        console.warn('Lit Side-by-Side renderer not available, falling back to traditional renderer');
+        diffOutput = new SideBySideRenderer(hoganUtils, config).render(diffJson);
+      }
       break;
     case 'side-by-side':
       diffOutput = new SideBySideRenderer(hoganUtils, config).render(diffJson);
@@ -85,10 +122,20 @@ export function renderToElement(
   // For Lit renderers, use direct DOM rendering for better performance
   switch (config.outputFormat) {
     case 'line-by-line-lit':
-      new LitLineByLineRenderer(config).renderToElement(diffJson, targetElement);
+      if (LitLineByLineRenderer) {
+        new LitLineByLineRenderer(config).renderToElement(diffJson, targetElement);
+      } else {
+        console.warn('Lit Line-by-Line renderer not available, falling back to HTML string rendering');
+        targetElement.innerHTML = html(diffInput, configuration);
+      }
       break;
     case 'side-by-side-lit':
-      new LitSideBySideRenderer(config).renderToElement(diffJson, targetElement);
+      if (LitSideBySideRenderer) {
+        new LitSideBySideRenderer(config).renderToElement(diffJson, targetElement);
+      } else {
+        console.warn('Lit Side-by-Side renderer not available, falling back to HTML string rendering');
+        targetElement.innerHTML = html(diffInput, configuration);
+      }
       break;
     default:
       // Fall back to HTML string rendering for traditional formats

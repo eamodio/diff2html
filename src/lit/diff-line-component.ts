@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import * as renderUtils from '../render-utils';
-import { DiffLine } from '../types';
+import type { DiffLine as DiffLineType } from '../types';
 
 /**
  * A Lit component for rendering a single diff line
@@ -99,7 +99,7 @@ export class DiffLineComponent extends LitElement {
     }
   `;
 
-  @property({ type: Object }) line?: DiffLine;
+  @property({ type: Object }) line?: DiffLineType;
   @property({ type: String }) lineClass = 'd2h-code-linenumber';
   @property({ type: String }) contentClass = 'd2h-code-line';
   @property({ type: String }) prefix = '';

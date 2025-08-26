@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diff2HTML Lit Components Demo</title>
+    <link rel="stylesheet" href="bundles/css/diff2html.min.css" />
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        margin: 40px;
+        background-color: #f6f8fa;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.12),
+          0 1px 2px rgba(0, 0, 0, 0.24);
+      }
+      .demo-section {
+        margin-bottom: 40px;
+      }
+      .demo-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #24292e;
+      }
+      .demo-description {
+        color: #586069;
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+      .controls {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #f1f3f4;
+        border-radius: 6px;
+      }
+      .controls label {
+        display: inline-block;
+        margin-right: 20px;
+        font-weight: 500;
+      }
+      .controls select,
+      .controls input {
+        margin-left: 5px;
+        margin-right: 15px;
+      }
+      #diff-output {
+        border: 1px solid #e1e4e8;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .performance-info {
+        background-color: #e6ffed;
+        border: 1px solid #34d058;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Diff2HTML Lit Web Components Demo</h1>
+      <p class="demo-description">
+        This demo showcases the new Lit-based web components with virtualization support for improved performance on
+        large diffs.
+      </p>
+
+      <div class="performance-info">
+        <strong>Performance Enhancement:</strong> The Lit components automatically enable virtualization for large
+        diffs, rendering only visible lines and dramatically improving performance and memory usage.
+      </div>
+
+      <div class="demo-section">
+        <div class="controls">
+          <label>
+            Render Mode:
+            <select id="renderMode">
+              <option value="line-by-line">Traditional Line-by-Line</option>
+              <option value="line-by-line-lit" selected>Lit Line-by-Line (with virtualization)</option>
+              <option value="side-by-side">Traditional Side-by-Side</option>
+              <option value="side-by-side-lit">Lit Side-by-Side (with virtualization)</option>
+            </select>
+          </label>
+          <label>
+            Color Scheme:
+            <select id="colorScheme">
+              <option value="auto">Auto</option>
+              <option value="light" selected>Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
+          <label>
+            Virtualization:
+            <input type="checkbox" id="enableVirtualization" checked />
+            Enable
+          </label>
+          <button id="regenerateBtn">Apply Changes</button>
+        </div>
+
+        <div id="diff-output"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as Diff2Html from './lib-esm/diff2html.js';
+
+      // Sample diff string for demonstration
+      const sampleDiff = `diff --git a/sample.js b/sample.js
+index 83db48f..84b5c8e 100644
+--- a/sample.js
++++ b/sample.js
+@@ -1,8 +1,12 @@
+ function exampleFunction() {
+-    console.log('Hello World');
++    console.log('Hello, World!');
++    console.log('This is a new line');
+     
+     let data = {
+-        name: 'Example',
+-        value: 42
++        name: 'Updated Example',
++        value: 100,
++        description: 'This is a new property',
++        active: true
+     };
+     
++    return data;
+ }
+ 
+ // Another function
+@@ -12,7 +16,10 @@ function anotherFunction() {
+ }
+ 
+ class ExampleClass {
++    constructor() {
++        this.initialized = true;
++    }
+     
+     method1() {
+-        return 'method1';
++        return 'Updated method1';
+     }
+ }`;
+
+      // Generate a larger diff for virtualization demonstration
+      function generateLargeDiff() {
+        let largeDiff = sampleDiff;
+        for (let i = 0; i < 10; i++) {
+          largeDiff += `
+
+diff --git a/file${i}.js b/file${i}.js
+index ${i}23db48f..${i}4b5c8e 100644
+--- a/file${i}.js
++++ b/file${i}.js
+@@ -1,5 +1,8 @@
+ function file${i}Function() {
+-    console.log('File ${i}');
++    console.log('Updated File ${i}');
++    console.log('New line in file ${i}');
+     
+     let value = ${i * 10};
++    let newValue = ${i * 20};
++    
+     return value;
+ }`;
+        }
+        return largeDiff;
+      }
+
+      function renderDiff() {
+        const renderMode = document.getElementById('renderMode').value;
+        const colorScheme = document.getElementById('colorScheme').value;
+        const enableVirtualization = document.getElementById('enableVirtualization').checked;
+        const outputContainer = document.getElementById('diff-output');
+
+        const config = {
+          outputFormat: renderMode,
+          colorScheme: colorScheme,
+          drawFileList: true,
+          enableVirtualization: enableVirtualization,
+          virtualizationThreshold: 50, // Lower threshold for demo
+        };
+
+        const diffString = generateLargeDiff();
+
+        console.time('Diff Rendering');
+
+        try {
+          if (renderMode.includes('-lit')) {
+            // Use the new renderToElement method for Lit components
+            Diff2Html.renderToElement(diffString, outputContainer, config);
+          } else {
+            // Use traditional HTML string rendering
+            outputContainer.innerHTML = Diff2Html.html(diffString, config);
+          }
+          console.timeEnd('Diff Rendering');
+
+          // Display performance info
+          const fileCount = diffString.split('diff --git').length - 1;
+          const lineCount = diffString.split('\n').length;
+          console.log(`Rendered ${fileCount} files with ${lineCount} total lines`);
+          console.log(`Virtualization: ${enableVirtualization ? 'Enabled' : 'Disabled'}`);
+          console.log(`Render mode: ${renderMode}`);
+        } catch (error) {
+          console.error('Error rendering diff:', error);
+          outputContainer.innerHTML = `<div style="color: red; padding: 20px;">Error: ${error.message}</div>`;
+        }
+      }
+
+      // Initial render
+      renderDiff();
+
+      // Event listeners
+      document.getElementById('regenerateBtn').addEventListener('click', renderDiff);
+      document.getElementById('renderMode').addEventListener('change', renderDiff);
+      document.getElementById('colorScheme').addEventListener('change', renderDiff);
+      document.getElementById('enableVirtualization').addEventListener('change', renderDiff);
+    </script>
+  </body>
+</html>
