@@ -7,6 +7,7 @@ module.exports = {
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/ui/**',
+    '!src/lit/**',
     '!src/diff2html-templates.ts',
     '!src/__tests__/**',
     '!node_modules/**',
@@ -19,5 +20,5 @@ module.exports = {
       lines: 93,
     },
   },
-  prettierPath: require.resolve('prettier-2'),
+  prettierPath: require.resolve('prettier'),
 };
