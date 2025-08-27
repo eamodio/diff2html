@@ -20,5 +20,5 @@ module.exports = {
       lines: 93,
     },
   },
-  prettierPath: require.resolve('prettier-2'),
+  prettierPath: require.resolve('prettier'),
 };
